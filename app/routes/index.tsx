@@ -25,9 +25,9 @@ export default function Index() {
       </main>
       <aside>
         <h2>Enter Address</h2>
-        <input type="text" />
+        <input type="text" placeholder="sha.eth or 0xY0urAdR3ss...sS" />
 
-        <button>or Connect Wallet</button>
+        <button>Get Address from Wallet</button>
       </aside>
     </div>
   );
