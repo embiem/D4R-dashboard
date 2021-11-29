@@ -8,13 +8,12 @@ import {
   Scripts,
   ScrollRestoration,
   useCatch,
-  useLocation
+  useLocation,
 } from "remix";
 import type { LinksFunction } from "remix";
 
-import deleteMeRemixStyles from "~/styles/demos/remix.css";
-import globalStylesUrl from "~/styles/global.css";
-import darkStylesUrl from "~/styles/dark.css";
+import Layout from "./components/Layout";
+import styles from "./tailwind.css";
 
 /**
  * The `links` export is a function that returns an array of objects that map to
@@ -25,15 +24,7 @@ import darkStylesUrl from "~/styles/dark.css";
  * https://remix.run/api/app#links
  */
 export let links: LinksFunction = () => {
-  return [
-    { rel: "stylesheet", href: globalStylesUrl },
-    {
-      rel: "stylesheet",
-      href: darkStylesUrl,
-      media: "(prefers-color-scheme: dark)"
-    },
-    { rel: "stylesheet", href: deleteMeRemixStyles }
-  ];
+  return [{ rel: "stylesheet", href: styles }];
 };
 
 /**
@@ -53,13 +44,13 @@ export default function App() {
 
 function Document({
   children,
-  title
+  title,
 }: {
   children: React.ReactNode;
   title?: string;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" className="h-full">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width,initial-scale=1" />
@@ -67,7 +58,7 @@ function Document({
         <Meta />
         <Links />
       </head>
-      <body>
+      <body className="h-full">
         {children}
         <RouteChangeAnnouncement />
         <ScrollRestoration />
@@ -75,41 +66,6 @@ function Document({
         {process.env.NODE_ENV === "development" && <LiveReload />}
       </body>
     </html>
-  );
-}
-
-function Layout({ children }: React.PropsWithChildren<{}>) {
-  return (
-    <div className="remix-app">
-      <header className="remix-app__header">
-        <div className="container remix-app__header-content">
-          <Link to="/" title="Remix" className="remix-app__header-home-link">
-            <RemixLogo />
-          </Link>
-          <nav aria-label="Main navigation" className="remix-app__header-nav">
-            <ul>
-              <li>
-                <Link to="/">Home</Link>
-              </li>
-              <li>
-                <a href="https://developerdao.com/">Developer DAO</a>
-              </li>
-              <li>
-                <a href="https://github.com/embiem/d4r-dashboard">GitHub</a>
-              </li>
-            </ul>
-          </nav>
-        </div>
-      </header>
-      <div className="remix-app__main">
-        <div className="container remix-app__main-content">{children}</div>
-      </div>
-      <footer className="remix-app__footer">
-        <div className="container remix-app__footer-content">
-          <p>&copy; You!</p>
-        </div>
-      </footer>
-    </div>
   );
 }
 
@@ -238,7 +194,7 @@ const RouteChangeAnnouncement = React.memo(() => {
         position: "absolute",
         width: "1px",
         whiteSpace: "nowrap",
-        wordWrap: "normal"
+        wordWrap: "normal",
       }}
     >
       {innerHtml}
