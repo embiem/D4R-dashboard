@@ -1,4 +1,6 @@
-import type { MetaFunction } from "remix";
+import { MetaFunction, Outlet, useLoaderData, useNavigate } from "remix";
+import { useContext, useEffect } from "react";
+import { AddressContext } from "~/root";
 
 export let meta: MetaFunction = () => {
   return {
@@ -8,10 +10,24 @@ export let meta: MetaFunction = () => {
   };
 };
 
-export default function Index() {
+export default function Airdrop() {
+  const { currentAddress } = useContext(AddressContext);
+  let navigate = useNavigate();
+
+  useEffect(() => {
+    if (currentAddress) navigate(`${currentAddress}`);
+  }, [currentAddress]);
+
   return (
     <div>
       <h2 className="text-2xl font-semibold text-gray-900">Airdrop</h2>
+      {!currentAddress && (
+        <p>
+          If we have address, redirect to $address, otherwise show the
+          AddressForm
+        </p>
+      )}
+      <Outlet />
     </div>
   );
 }

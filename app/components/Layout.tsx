@@ -1,4 +1,5 @@
 import { Fragment, useState } from "react";
+import { Link } from "remix";
 import { Dialog, Transition } from "@headlessui/react";
 import {
   ExternalLinkIcon,
@@ -29,7 +30,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const location = useLocation();
-  console.log(location);
 
   const navigation = [
     {
@@ -42,13 +42,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       name: "Airdrop Checker",
       href: "/tools/airdrop",
       icon: BadgeCheckIcon,
-      current: location.pathname === "/tools/airdrop",
+      current: location.pathname.startsWith("/tools/airdrop"),
     },
     {
       name: "NFT Collection",
       href: "/tools/collection",
       icon: CollectionIcon,
-      current: location.pathname === "/tools/airdrop",
+      current: location.pathname.startsWith("/tools/collection"),
     },
     {
       name: "Developer DAO Website",
@@ -65,9 +65,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   ];
 
   const nav = navigation.map((item) => (
-    <a
+    <Link
       key={item.name}
-      href={item.href}
+      to={item.href}
       className={classNames(
         item.current
           ? "bg-gray-900 text-white"
@@ -85,11 +85,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         aria-hidden="true"
       />
       {item.name}
-    </a>
+    </Link>
   ));
 
-  const user = (
-    <div className="flex-shrink-0 flex p-4 mt-5">
+  const user = <></>;
+  /* <div className="flex-shrink-0 flex p-4 mt-5">
       <a href="#" className="flex-shrink-0 w-full group block">
         <div className="flex items-center">
           <span className="inline-block h-10 w-10 rounded-full overflow-hidden bg-gray-100">
@@ -109,8 +109,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </a>
-    </div>
-  );
+    </div> */
 
   return (
     <>

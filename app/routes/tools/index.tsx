@@ -1,12 +1,14 @@
-import type { MetaFunction } from "remix";
+import { MetaFunction, useSubmit } from "remix";
 import { ActionFunction, json, useActionData } from "remix";
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 import { ethers } from "ethers";
 
 import GridList from "~/components/GridList";
 import AddressForm from "~/components/AddressForm";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import invariant from "ts-invariant";
+import { AddressContext } from "~/root";
+import Card from "~/components/Card";
 
 export let meta: MetaFunction = () => {
   return {
@@ -120,10 +122,49 @@ export let action: ActionFunction = async ({ request, params }) => {
 export default function Index() {
   const { address, domain } = useActionData() || {};
 
+  const { currentAddress, setCurrentAddress, clearAddress } =
+    useContext(AddressContext);
+
+  let submit = useSubmit();
+  useEffect(() => {
+    if (currentAddress) {
+      submit(
+        { address: currentAddress },
+        {
+          action: "/tools?index",
+          method: "post",
+        }
+      );
+    }
+  }, []);
+
+  // Update the chosen & verified address in context
+  useEffect(() => {
+    if (address) {
+      setCurrentAddress(address);
+    }
+  }, [address, domain]);
+
   return (
     <div>
       <div className="mb-8">
-        {!address ? <AddressForm /> : <div>👋 {domain || address}</div>}
+        <Card>
+          {!currentAddress && <AddressForm />}
+          {currentAddress && (
+            <div>
+              <div className="flex items-center">
+                <span>👋</span>
+                <p className="ml-4">{domain || currentAddress}</p>
+              </div>
+              <button
+                onClick={clearAddress}
+                className="ml-9 mt-2 underline text-sm text-gray-600"
+              >
+                Clear locally stored address
+              </button>
+            </div>
+          )}
+        </Card>
       </div>
 
       <GridList />
