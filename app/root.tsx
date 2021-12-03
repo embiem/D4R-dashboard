@@ -39,9 +39,16 @@ export let AddressContext = React.createContext({
  * component for your app.
  */
 export default function App() {
-  const [currentAddress, setCurrentAddress] = React.useState(
-    typeof window !== "undefined" ? localStorage.getItem("address") ?? "" : ""
-  );
+  const [currentAddress, setCurrentAddress] = React.useState("");
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const address = localStorage.getItem("address");
+      if (address) {
+        setCurrentAddress(address);
+      }
+    }
+  }, []);
 
   const addressProviderValue = React.useMemo(
     () => ({

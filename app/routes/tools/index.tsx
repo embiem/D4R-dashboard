@@ -1,4 +1,4 @@
-import { MetaFunction, useSubmit } from "remix";
+import { MetaFunction, useSubmit, useTransition } from "remix";
 import { ActionFunction, json, useActionData } from "remix";
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 import { ethers } from "ethers";
@@ -122,34 +122,25 @@ export let action: ActionFunction = async ({ request, params }) => {
 export default function Index() {
   const { address, domain } = useActionData() || {};
 
+  const transition = useTransition();
+
   const { currentAddress, setCurrentAddress, clearAddress } =
     useContext(AddressContext);
 
-  let submit = useSubmit();
-  useEffect(() => {
-    if (currentAddress) {
-      submit(
-        { address: currentAddress },
-        {
-          action: "/tools?index",
-          method: "post",
-        }
-      );
-    }
-  }, []);
-
   // Update the chosen & verified address in context
   useEffect(() => {
-    if (address) {
+    if (address && address !== currentAddress) {
       setCurrentAddress(address);
     }
-  }, [address, domain]);
+  }, [address, setCurrentAddress]);
+
+  console.log(transition.state);
 
   return (
     <div>
       <div className="mb-8">
         <Card>
-          {!currentAddress && <AddressForm />}
+          {!currentAddress && transition.state === "idle" && <AddressForm />}
           {currentAddress && (
             <div>
               <div className="flex items-center">
