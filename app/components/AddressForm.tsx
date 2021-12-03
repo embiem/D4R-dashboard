@@ -59,7 +59,7 @@ export default function AddressForm() {
                   name="address"
                   id="address"
                   className="focus:ring-indigo-500 focus:border-indigo-500 block w-full rounded-none rounded-l-md pl-10 sm:text-sm border-gray-300"
-                  placeholder=".ens or 0x"
+                  placeholder=".eth or 0x"
                 />
               </div>
               <button
