@@ -1,4 +1,4 @@
-import { MetaFunction, Outlet, useLoaderData, useNavigate } from "remix";
+import { Link, MetaFunction, Outlet, useLoaderData, useNavigate } from "remix";
 import { useContext, useEffect } from "react";
 import { AddressContext } from "~/root";
 
@@ -21,13 +21,18 @@ export default function Airdrop() {
   return (
     <div>
       <h2 className="text-2xl font-semibold text-gray-900">Airdrop</h2>
-      {!currentAddress && (
-        <p>
-          If we have address, redirect to $address, otherwise show the
-          AddressForm
-        </p>
-      )}
-      <Outlet />
+      <div className="mt-4">
+        {!currentAddress && (
+          <p>
+            Please{" "}
+            <Link className="underline text-gray-600" to="/tools">
+              go back
+            </Link>{" "}
+            and choose an address or connect wallet.
+          </p>
+        )}
+        <Outlet />
+      </div>
     </div>
   );
 }
