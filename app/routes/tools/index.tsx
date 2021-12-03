@@ -1,7 +1,13 @@
-import { MetaFunction, useSubmit, useTransition } from "remix";
-import { ActionFunction, json, useActionData } from "remix";
+import {
+  LoaderFunction,
+  MetaFunction,
+  useLoaderData,
+  useTransition,
+} from "remix";
+import { ActionFunction, json, useActionData, useNavigate } from "remix";
 import { ApolloClient, InMemoryCache, gql } from "@apollo/client";
 import { ethers } from "ethers";
+import Cookies from "js-cookie";
 
 import GridList from "~/components/GridList";
 import AddressForm from "~/components/AddressForm";
@@ -9,6 +15,7 @@ import { useContext, useEffect, useState } from "react";
 import invariant from "ts-invariant";
 import { AddressContext } from "~/root";
 import Card from "~/components/Card";
+import { userAddress } from "~/cookies";
 
 export let meta: MetaFunction = () => {
   return {
@@ -53,15 +60,21 @@ export let action: ActionFunction = async ({ request, params }) => {
   //if (request.method !== "PUT") throw json("Bad Request", { status: 400 });
 
   let formData = await request.formData();
-  console.log(await request.text());
-  console.log(formData.entries());
-  console.log(formData.values());
+
+  const cookieHeader = request.headers.get("Cookie");
+  const cookie = (await userAddress.parse(cookieHeader)) || {};
+
   const address = formData.get("address");
 
   if (!address) throw json("Missing address", { status: 400 });
 
   console.log(address);
   invariant(typeof address === "string");
+
+  let returnVal = {
+    address: address,
+    domain: null,
+  };
 
   if (address.toLowerCase().endsWith(".eth")) {
     // try to resolve it
@@ -73,10 +86,8 @@ export let action: ActionFunction = async ({ request, params }) => {
         },
       });
 
-      console.log(data);
-
       if (data.domains.length > 0) {
-        return {
+        returnVal = {
           address: data.domains[0].resolvedAddress.id,
           domain: data.domains[0].name,
         };
@@ -89,7 +100,7 @@ export let action: ActionFunction = async ({ request, params }) => {
   }
 
   // validate that it's an existing Ethereum address
-  if (ethers.utils.isAddress(address)) {
+  else if (ethers.utils.isAddress(address)) {
     try {
       // check if ENS domain exists
       const { data }: any = await client.query({
@@ -100,7 +111,7 @@ export let action: ActionFunction = async ({ request, params }) => {
       });
 
       if (data.domains.length > 0) {
-        return {
+        returnVal = {
           address: address,
           domain: data.domains[0].name,
         };
@@ -108,47 +119,52 @@ export let action: ActionFunction = async ({ request, params }) => {
         throw Error("Could not resolve .eth address.");
       }
     } catch (err) {}
-
-    // Otherwise return just address
-    return {
-      address: address,
-      domain: null,
-    };
+  } else {
+    throw json("Bad Request", { status: 400 });
   }
 
-  throw json("Bad Request", { status: 400 });
+  // Otherwise return just address
+  cookie.address = returnVal.address;
+  cookie.domain = returnVal.domain;
+
+  return json(returnVal, {
+    headers: {
+      "Set-Cookie": await userAddress.serialize(cookie),
+    },
+  });
+};
+
+export let loader: LoaderFunction = async ({ request }) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const cookie = (await userAddress.parse(cookieHeader)) || {};
+  return { address: cookie.address, domain: cookie.domain };
 };
 
 export default function Index() {
-  const { address, domain } = useActionData() || {};
+  const navigate = useNavigate();
+  const loadedData = useLoaderData();
+  const actionData = useActionData() || {};
 
-  const transition = useTransition();
+  const { address = "", domain = "" } = { ...loadedData, ...actionData };
 
-  const { currentAddress, setCurrentAddress, clearAddress } =
-    useContext(AddressContext);
-
-  // Update the chosen & verified address in context
-  useEffect(() => {
-    if (address && address !== currentAddress) {
-      setCurrentAddress(address);
-    }
-  }, [address, setCurrentAddress]);
-
-  console.log(transition.state);
+  console.log(address, domain);
 
   return (
     <div>
       <div className="mb-8">
         <Card>
-          {!currentAddress && transition.state === "idle" && <AddressForm />}
-          {currentAddress && (
+          {!address && <AddressForm />}
+          {address && (
             <div>
               <div className="flex items-center">
                 <span>👋</span>
-                <p className="ml-4">{domain || currentAddress}</p>
+                <p className="ml-4">{domain || address}</p>
               </div>
               <button
-                onClick={clearAddress}
+                onClick={async () => {
+                  Cookies.remove("user-address");
+                  navigate(0);
+                }}
                 className="ml-9 mt-2 underline text-sm text-gray-600"
               >
                 Clear locally stored address

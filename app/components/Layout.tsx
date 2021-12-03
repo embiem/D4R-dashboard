@@ -8,6 +8,7 @@ import {
   BadgeCheckIcon,
   MenuIcon,
   XIcon,
+  EyeOffIcon,
 } from "@heroicons/react/outline";
 import { useLocation } from "react-router-dom";
 
@@ -49,6 +50,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       href: "/tools/collection",
       icon: CollectionIcon,
       current: location.pathname.startsWith("/tools/collection"),
+    },
+    {
+      name: "Privacy Notice",
+      href: "/privacy",
+      icon: EyeOffIcon,
+      current: location.pathname.startsWith("/privacy"),
     },
     {
       name: "Developer DAO Website",

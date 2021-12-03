@@ -3,17 +3,20 @@ import {
   Link,
   Links,
   LiveReload,
+  LoaderFunction,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
   useCatch,
+  useLoaderData,
   useLocation,
 } from "remix";
 import type { LinksFunction } from "remix";
 
 import Layout from "./components/Layout";
 import styles from "./tailwind.css";
+import { userAddress } from "./cookies";
 
 /**
  * The `links` export is a function that returns an array of objects that map to
@@ -27,11 +30,17 @@ export let links: LinksFunction = () => {
   return [{ rel: "stylesheet", href: styles }];
 };
 
-export let AddressContext = React.createContext({
+export const AddressContext = React.createContext({
   currentAddress: "",
   setCurrentAddress: (a: string) => {},
   clearAddress: () => {},
 });
+
+export let loader: LoaderFunction = async ({ request }) => {
+  const cookieHeader = request.headers.get("Cookie");
+  const cookie = (await userAddress.parse(cookieHeader)) || {};
+  return { address: cookie.address, domain: cookie.domain };
+};
 
 /**
  * The root module's default export is a component that renders the current
@@ -39,27 +48,19 @@ export let AddressContext = React.createContext({
  * component for your app.
  */
 export default function App() {
-  const [currentAddress, setCurrentAddress] = React.useState("");
-
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const address = localStorage.getItem("address");
-      if (address) {
-        setCurrentAddress(address);
-      }
-    }
-  }, []);
+  const loadedData = useLoaderData();
+  console.log("loadedData", loadedData);
+  const [currentAddress, setCurrentAddress] = React.useState(
+    loadedData.address || ""
+  );
 
   const addressProviderValue = React.useMemo(
     () => ({
       currentAddress,
-      setCurrentAddress: (address: string) => {
-        localStorage.setItem("address", address);
-        setCurrentAddress(address);
-      },
+      setCurrentAddress,
       clearAddress: () => {
-        localStorage.removeItem("address");
         setCurrentAddress("");
+        // TODO remove cookie
       },
     }),
     [currentAddress, setCurrentAddress]
@@ -67,11 +68,11 @@ export default function App() {
 
   return (
     <Document>
-      <Layout>
-        <AddressContext.Provider value={addressProviderValue}>
+      <AddressContext.Provider value={addressProviderValue}>
+        <Layout>
           <Outlet />
-        </AddressContext.Provider>
-      </Layout>
+        </Layout>
+      </AddressContext.Provider>
     </Document>
   );
 }
