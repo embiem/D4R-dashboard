@@ -33,7 +33,6 @@ export let links: LinksFunction = () => {
 export const AddressContext = React.createContext({
   currentAddress: "",
   setCurrentAddress: (a: string) => {},
-  clearAddress: () => {},
 });
 
 export let loader: LoaderFunction = async ({ request }) => {
@@ -58,10 +57,6 @@ export default function App() {
     () => ({
       currentAddress,
       setCurrentAddress,
-      clearAddress: () => {
-        setCurrentAddress("");
-        // TODO remove cookie
-      },
     }),
     [currentAddress, setCurrentAddress]
   );
